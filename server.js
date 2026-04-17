@@ -1,4 +1,6 @@
 const axios = require('axios');
+const instanceId = 'YOUR_INSTANCE_ID';
+const token = 'YOUR_TOKEN';
 const express = require('express');
 const { Pool } = require('pg');
 const admin = require('firebase-admin');
@@ -47,14 +49,14 @@ app.post('/api/bulk-nuke', async (req, res) => {
         const targetLeads = result.rows;
         if (targetLeads.length === 0) return res.json({ message: "Bhai, koi Hot Lead nahi mili! ❄️" });
 
-        // UltraMsg Credentials (Yahan apni asli ID aur Token daal dena)
-        const instanceId = 'YOUR_INSTANCE_ID';
-        const token = 'YOUR_TOKEN';
+        // IMPORTANT: Yahan apni asli ID aur Token dalo
+        const instanceId = 'instance9999'; // Example ID
+        const token = 'abcdef123456';    // Example Token
 
-        // Ek-ek karke sabko asli message bhejna
         for (const lead of targetLeads) {
-            const message = `Namaste ${lead.student_name}! 🙏 Aura School Indore mein aapka admission slot confirm ho gaya hai. Hum jald hi aapse baat karenge.`;
+            const message = `Namaste ${lead.student_name}! 🙏 Aura School Indore mein aapka admission slot confirm ho gaya hai.`;
 
+            // Ye line UltraMsg ko message bhejti hai
             await axios.post(`https://api.ultramsg.com/${instanceId}/messages/chat`, {
                 token: token,
                 to: `+91${lead.parent_phone}`,
@@ -62,14 +64,12 @@ app.post('/api/bulk-nuke', async (req, res) => {
             });
         }
 
-        res.json({
-            success: true,
-            message: `🚀 BOOM! ${targetLeads.length} Students ko automated message bhej diya gaya hai.`
-        });
+        res.json({ success: true, message: `🚀 Boom! ${targetLeads.length} Students ko message chala gaya.` });
 
     } catch (err) {
-        console.error("WhatsApp API Error:", err.message);
-        res.status(500).json({ error: "WhatsApp API Error: " + err.message });
+        // Bhai ye line Render logs mein error print karegi agar WhatsApp fail hua
+        console.error("CRASH ERROR:", err.response ? err.response.data : err.message);
+        res.status(500).json({ error: "WhatsApp API Error" });
     }
 });
 // 4. SMART API: Add Lead + Auto Fee Initialization (Phase 1 Finish)
