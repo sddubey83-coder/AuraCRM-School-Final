@@ -39,31 +39,36 @@ app.get('/', (req, res) => {
 // 🚀 BULK WHATSAPP LOGIC (PHASE 3)
 app.post('/api/bulk-nuke', async (req, res) => {
     try {
-        // Sirf un leads ko uthao jo Hot hain aur jinka status 'new' hai
         const result = await pool.query(
             "SELECT student_name, parent_phone FROM leads WHERE lead_score >= 80 AND status = 'new'"
         );
 
         const targetLeads = result.rows;
+        if (targetLeads.length === 0) return res.json({ message: "Bhai, koi Hot Lead nahi mili! ❄️" });
 
-        if (targetLeads.length === 0) {
-            return res.json({ message: "Bhai, koi Hot Lead nahi mili! ❄️" });
+        // UltraMsg Credentials (Yahan apni asli ID aur Token daal dena)
+        const instanceId = 'YOUR_INSTANCE_ID';
+        const token = 'YOUR_TOKEN';
+
+        // Ek-ek karke sabko asli message bhejna
+        for (const lead of targetLeads) {
+            const message = `Namaste ${lead.student_name}! 🙏 Aura School Indore mein aapka admission slot confirm ho gaya hai. Hum jald hi aapse baat karenge.`;
+
+            await axios.post(`https://api.ultramsg.com/${instanceId}/messages/chat`, {
+                token: token,
+                to: `+91${lead.parent_phone}`,
+                body: message
+            });
         }
-
-        // Logic: Yahan hum loop chala kar WhatsApp API call karenge
-        // Abhi hum simulate kar rahe hain
-        targetLeads.forEach(lead => {
-            console.log(`Sending automated message to: ${lead.student_name} (${lead.parent_phone})`);
-        });
 
         res.json({
             success: true,
-            message: `Target Locked! 🚀 ${targetLeads.length} leads ko piche se message ja raha hai.`,
-            count: targetLeads.length
+            message: `🚀 BOOM! ${targetLeads.length} Students ko automated message bhej diya gaya hai.`
         });
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("WhatsApp API Error:", err.message);
+        res.status(500).json({ error: "WhatsApp API Error: " + err.message });
     }
 });
 // 4. SMART API: Add Lead + Auto Fee Initialization (Phase 1 Finish)
