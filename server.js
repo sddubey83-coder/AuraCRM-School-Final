@@ -36,19 +36,49 @@ try {
 app.get('/', (req, res) => {
     res.send('🚀 AuraCRM School Backend is LIVE and Fresh!');
 });
+// 🚀 BULK WHATSAPP LOGIC (PHASE 3)
+app.post('/api/bulk-nuke', async (req, res) => {
+    try {
+        // Sirf un leads ko uthao jo Hot hain aur jinka status 'new' hai
+        const result = await pool.query(
+            "SELECT student_name, parent_phone FROM leads WHERE lead_score >= 80 AND status = 'new'"
+        );
 
+        const targetLeads = result.rows;
+
+        if (targetLeads.length === 0) {
+            return res.json({ message: "Bhai, koi Hot Lead nahi mili! ❄️" });
+        }
+
+        // Logic: Yahan hum loop chala kar WhatsApp API call karenge
+        // Abhi hum simulate kar rahe hain
+        targetLeads.forEach(lead => {
+            console.log(`Sending automated message to: ${lead.student_name} (${lead.parent_phone})`);
+        });
+
+        res.json({
+            success: true,
+            message: `Target Locked! 🚀 ${targetLeads.length} leads ko piche se message ja raha hai.`,
+            count: targetLeads.length
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 // 4. SMART API: Add Lead + Auto Fee Initialization (Phase 1 Finish)
 app.post('/api/add-lead', async (req, res) => {
     const { student_name, parent_phone, source } = req.body;
 
-    // --- 🧠 AI Smart Scoring Logic ---
+    // --- 🧠 AI Smart Scoring Logic (Upgraded) ---
     let aiScore = 50;
     if (student_name && student_name.length > 3) aiScore += 10;
     if (parent_phone && parent_phone.length === 10) aiScore += 15;
-    if (source === 'Indore' || source === 'Ujjain') aiScore += 15;
 
-    let suggestion = aiScore >= 80 ? "Immediate Call Required! 📞" : "Send WhatsApp Brochure 📄";
+    // Indore/Ujjain leads are Gold! 🏆
+    if (source === 'Indore' || source === 'Ujjain') aiScore += 25;
 
+    let suggestion = aiScore >= 85 ? "🔥 High Priority: Immediate Call!" : "✉️ Send WhatsApp Brochure";
     try {
         // Step 1: Insert into Leads
         const result = await pool.query(
