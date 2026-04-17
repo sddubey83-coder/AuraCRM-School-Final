@@ -8,13 +8,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 1. PostgreSQL Connection
+// 1. PostgreSQL Connection (SSL Update ke saath)
 const pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
+    ssl: {
+        rejectUnauthorized: false // Ye Render ke liye zaroori hai
+    }
 });
 
 // 2. Firebase Setup (Keep this if you use it later)
@@ -138,4 +141,30 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ AuraCRM School Server started on port ${PORT}`);
     console.log(`🔗 Local access: http://localhost:${PORT}`);
     console.log(`📱 Mobile access: http://YOUR_LAPTOP_IP:${PORT}`);
+});
+// 🛠️ JUGAD: Tables banane ke liye temporary route
+app.get('/setup-db', async (req, res) => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS leads (
+                id SERIAL PRIMARY KEY,
+                student_name TEXT,
+                parent_phone TEXT,
+                source TEXT,
+                lead_score INTEGER,
+                status TEXT DEFAULT 'new'
+            );
+        `);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS student_fees (
+                id SERIAL PRIMARY KEY,
+                lead_id INTEGER REFERENCES leads(id) ON DELETE CASCADE,
+                total_fees INTEGER DEFAULT 50000,
+                paid_amount INTEGER DEFAULT 0
+            );
+        `);
+        res.send("✅ Tables Created Successfully!");
+    } catch (err) {
+        res.status(500).send("❌ Error: " + err.message);
+    }
 });
