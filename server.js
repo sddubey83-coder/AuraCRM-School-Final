@@ -40,36 +40,36 @@ app.get('/', (req, res) => {
     res.send('🚀 AuraCRM School Backend is LIVE and Fresh!');
 });
 // 🚀 BULK WHATSAPP LOGIC (PHASE 3)
-app.post('/api/bulk-nuke', async (req, res) => {
+// 🌍 GLOBAL STRATEGY: Autonomous Operating System (ASOS)
+app.post('/api/autonomous-action', async (req, res) => {
     try {
-        const result = await pool.query(
-            "SELECT student_name, parent_phone FROM leads WHERE lead_score >= 80 AND status = 'new'"
-        );
+        const { type } = req.body; // 'admission' ya 'fees'
+        let results = [];
 
-        const targetLeads = result.rows;
-        if (targetLeads.length === 0) return res.json({ message: "Bhai, koi Hot Lead nahi mili! ❄️" });
+        // UltraMsg Credentials (Naya account wala yahan dalo)
+        const instanceId = 'YOUR_INSTANCE_ID';
+        const token = 'YOUR_TOKEN';
 
-        // IMPORTANT: Yahan apni asli ID aur Token dalo
-        const instanceId = 'instance9999'; // Example ID
-        const token = 'abcdef123456';    // Example Token
-
-        for (const lead of targetLeads) {
-            const message = `Namaste ${lead.student_name}! 🙏 Aura School Indore mein aapka admission slot confirm ho gaya hai.`;
-
-            // Ye line UltraMsg ko message bhejti hai
-            await axios.post(`https://api.ultramsg.com/${instanceId}/messages/chat`, {
-                token: token,
-                to: `+91${lead.parent_phone}`,
-                body: message
-            });
+        if (type === 'admission') {
+            const leads = await pool.query("SELECT student_name, parent_phone FROM leads WHERE lead_score >= 80 AND status = 'new'");
+            for (const lead of leads.rows) {
+                const msg = `Namaste ${lead.student_name}! 🙏 Aura School Indore mein aapka admission slot prioritised hai. Jald sampark karein.`;
+                await axios.post(`https://api.ultramsg.com/${instanceId}/messages/chat`, { token, to: `+91${lead.parent_phone}`, body: msg });
+                results.push({ name: lead.student_name, status: 'Sent' });
+            }
+        } else if (type === 'fees') {
+            const fees = await pool.query("SELECT student_name, parent_phone, balance_due FROM fee_recovery WHERE balance_due > 0");
+            for (const record of fees.rows) {
+                const msg = `Namaste! Dolly ki ₹${record.balance_due} fees pending hai. Aura School ka autonomous system aapko remind kar raha hai. 🙏`;
+                await axios.post(`https://api.ultramsg.com/${instanceId}/messages/chat`, { token, to: `+91${record.parent_phone}`, body: msg });
+                results.push({ name: record.student_name, status: 'Recovered' });
+            }
         }
 
-        res.json({ success: true, message: `🚀 Boom! ${targetLeads.length} Students ko message chala gaya.` });
-
+        res.json({ success: true, system: "ASOS", data: results });
     } catch (err) {
-        // Bhai ye line Render logs mein error print karegi agar WhatsApp fail hua
-        console.error("CRASH ERROR:", err.response ? err.response.data : err.message);
-        res.status(500).json({ error: "WhatsApp API Error" });
+        console.error("ASOS Error:", err.message);
+        res.status(500).json({ error: "System failed to act." });
     }
 });
 // 4. SMART API: Add Lead + Auto Fee Initialization (Phase 1 Finish)
