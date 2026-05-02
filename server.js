@@ -10,8 +10,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-
+const bcrypt = require("bcryptjs");
 const app = express();
 
 // ==========================
